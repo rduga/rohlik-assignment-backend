@@ -12,4 +12,6 @@ public interface OrderItemRepository extends CrudRepository<OrderItem, OrderItem
         return findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("OrderItem not found with id: " + id));
     }
+
+    boolean existsByProductId(Long productId);
 }

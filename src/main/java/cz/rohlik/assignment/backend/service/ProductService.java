@@ -1,11 +1,13 @@
 package cz.rohlik.assignment.backend.service;
 
 import cz.rohlik.assignment.backend.entity.Product;
+import cz.rohlik.assignment.backend.exception.ProductCanotBeDeletedException;
 import cz.rohlik.assignment.backend.model.ProductRequestDto;
 import cz.rohlik.assignment.backend.model.ProductResponseDto;
 import cz.rohlik.assignment.backend.model.mapper.ProductMapper;
 import cz.rohlik.assignment.backend.repository.ProductRepository;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.data.domain.Page;
@@ -19,6 +21,7 @@ public class ProductService {
 
     ProductRepository productRepository;
     ProductMapper productMapper;
+    OrderItemService orderItemService;
 
     public Page<ProductResponseDto> getAll(Pageable pageable) {
         return productRepository.findAll(pageable).map(productMapper::toDto);
@@ -47,10 +50,16 @@ public class ProductService {
         return productMapper.toDto(savedProduct);
     }
 
+    @Transactional
     public void deleteProduct(Long id) {
         if (!productRepository.existsById(id)) {
             throw new EntityNotFoundException("Product not found with id: " + id);
         }
+
+        if (orderItemService.orderItemExistsByProductId(id)) {
+            throw new ProductCanotBeDeletedException("Cannot delete product with existing order items");
+        }
+
         productRepository.deleteById(id);
     }
 }

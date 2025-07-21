@@ -56,4 +56,8 @@ public class OrderItemService {
             productRepository.save(product);
         });
     }
+
+    public boolean orderItemExistsByProductId(Long productId) {
+        return orderItemRepository.existsByProductId(productId);
+    }
 }
