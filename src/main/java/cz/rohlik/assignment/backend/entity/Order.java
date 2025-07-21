@@ -12,6 +12,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.FieldDefaults;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Entity
@@ -27,6 +28,8 @@ public class Order extends BaseEntity {
 
     @Enumerated(EnumType.STRING)
     OrderStatus status;
+
+    BigDecimal totalPrice;
 
     @Version
     Integer version;

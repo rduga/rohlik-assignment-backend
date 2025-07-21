@@ -1,0 +1,5 @@
+# set this profile by using the command line argument: -Dspring.profiles.active=local
+app:
+  order:
+    expiration:
+      time-in-seconds: 30

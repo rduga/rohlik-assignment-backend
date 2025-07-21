@@ -1,19 +1,32 @@
 package cz.rohlik.assignment.backend.service;
 
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Service;
 
+import java.util.concurrent.TimeUnit;
+
+@Service
+@RequiredArgsConstructor
+@FieldDefaults(makeFinal = true, level = lombok.AccessLevel.PRIVATE)
+@Slf4j
+@ConditionalOnProperty(
+    name = "app.order.expiration.scheduler.enabled",
+    havingValue = "true",
+    matchIfMissing = true)
 public class OrderExpirationService {
 
-    // This service is responsible for handling order expiration logic.
-    // It will contain methods to check for expired orders and perform necessary actions.
+    OrderService orderService;
 
-    // Example method to check for expired orders
-    @Scheduled(fixedRate = 60000) // Runs every minute
+    @Scheduled(
+        fixedRateString = "${app.order.expiration.scheduler.fixed-rate-seconds:15}",
+        timeUnit = TimeUnit.SECONDS
+    )
     public void checkForExpiredOrders() {
-        // FIXME: rduga implement
-        // Logic to find and handle expired orders
-        // This could involve querying the database, notifying users, etc.
+        log.info("Checking for expired orders...");
+        orderService.checkForExpiredOrders();
     }
-
-    // Additional methods related to order expiration can be added here
 }

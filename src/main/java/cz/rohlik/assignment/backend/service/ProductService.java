@@ -40,6 +40,7 @@ public class ProductService {
         return productMapper.toDto(savedProduct);
     }
 
+    @Transactional
     public ProductResponseDto updateProduct(Long id, ProductRequestDto productRequestDto) {
         Product existingProduct = productRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Product not found with id: " + id));
