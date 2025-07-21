@@ -1,0 +1,4 @@
+app:
+  order:
+    expiration:
+      time-in-seconds: 30

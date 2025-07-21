@@ -114,7 +114,7 @@ public class OrderService {
     @Transactional
     public void checkForExpiredOrders() {
         Page<Order> expiredOrders = orderRepository.findAllByStatusAndCreatedAtBefore(
-                OrderStatus.RESERVED, Instant.now().minus(orderExpirationTimeSeconds, ChronoUnit.SECONDS), Pageable.unpaged());
+                OrderStatus.RESERVED, getCreatedAtBefore(), Pageable.unpaged());
 
         if (!expiredOrders.hasContent()) {
             return;
@@ -126,5 +126,9 @@ public class OrderService {
             orderItemService.cancelOrderItems(order.getItems());
         });
         orderRepository.saveAll(expiredOrders.getContent());
+    }
+
+    private Instant getCreatedAtBefore() {
+        return Instant.now().minus(orderExpirationTimeSeconds, ChronoUnit.SECONDS);
     }
 }
