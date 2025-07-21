@@ -9,7 +9,7 @@ import java.util.List;
 @Value
 @Builder
 @Jacksonized
-public class OrderDto {
+public class OrderRequestDto {
 
     List<OrderItemDto> items;
 }

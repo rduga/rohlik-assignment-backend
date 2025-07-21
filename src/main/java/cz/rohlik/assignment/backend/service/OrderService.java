@@ -2,8 +2,10 @@ package cz.rohlik.assignment.backend.service;
 
 import cz.rohlik.assignment.backend.entity.Order;
 import cz.rohlik.assignment.backend.exception.OrderCannotBeCancelledException;
-import cz.rohlik.assignment.backend.model.OrderDto;
 import cz.rohlik.assignment.backend.model.OrderItemDto;
+import cz.rohlik.assignment.backend.model.OrderRequestDto;
+import cz.rohlik.assignment.backend.model.OrderResponseDto;
+import cz.rohlik.assignment.backend.model.OrderStatus;
 import cz.rohlik.assignment.backend.model.PaymentRequestDto;
 import cz.rohlik.assignment.backend.model.mapper.OrderMapper;
 import cz.rohlik.assignment.backend.repository.OrderRepository;
@@ -28,25 +30,25 @@ public class OrderService {
     OrderMapper orderMapper;
     OrderItemService orderItemService;
 
-    public Page<OrderDto> getAll(Pageable pageable) {
+    public Page<OrderResponseDto> getAll(Pageable pageable) {
         return orderRepository.findAll(pageable).map(orderMapper::toDto);
     }
 
-    public OrderDto getById(Long id) {
+    public OrderResponseDto getById(Long id) {
         return orderRepository.findById(id)
                 .map(orderMapper::toDto)
                 .orElseThrow(() -> new EntityNotFoundException("Order not found with id: " + id));
     }
 
     @Transactional
-    public OrderDto createOrder(OrderDto orderDto) {
+    public OrderResponseDto createOrder(OrderRequestDto orderRequestDto) {
         Order order = new Order();
-        order.setStatus(Order.OrderStatus.RESERVED);
+        order.setStatus(OrderStatus.RESERVED);
 
         order = orderRepository.save(order);
 
         Order orderForItems = order;
-        order.setItems(orderDto.getItems().stream()
+        order.setItems(orderRequestDto.getItems().stream()
             .map((OrderItemDto orderItemDto) -> orderItemService.createOrderItem(orderItemDto, orderForItems))
             .collect(Collectors.toCollection(ArrayList::new)));
 
@@ -56,26 +58,33 @@ public class OrderService {
     }
 
     @Transactional
-    public OrderDto payForOrder(Long id, PaymentRequestDto paymentRequestDto) {
+    public OrderResponseDto payForOrder(Long id, PaymentRequestDto paymentRequestDto) {
         return updateOrder(id, order -> {
             if (order.isPaid() || order.isCancelled()) {
                 throw new OrderCannotBeCancelledException("Cannot cancel a paid or cancelled order");
             }
-            order.setStatus(Order.OrderStatus.PAID);
+            order.setStatus(OrderStatus.PAID);
         });
     }
 
     @Transactional
-    public OrderDto cancelOrder(Long id) {
+    public OrderResponseDto cancelOrder(Long id) {
         return updateOrder(id, order -> {
             if (order.isPaid()) {
                 throw new OrderCannotBeCancelledException("Cannot cancel a paid order");
             }
-            order.setStatus(Order.OrderStatus.CANCELLED);
+
+            if (order.isCancelled()) {
+                throw new OrderCannotBeCancelledException("Order is already cancelled");
+            }
+
+            orderItemService.cancelOrderItems(order.getItems());
+
+            order.setStatus(OrderStatus.CANCELLED);
         });
     }
 
-    private OrderDto updateOrder(Long id, Consumer<Order> orderConsumer) {
+    private OrderResponseDto updateOrder(Long id, Consumer<Order> orderConsumer) {
         Order order = orderRepository.getById(id);
 
         orderConsumer.accept(order);

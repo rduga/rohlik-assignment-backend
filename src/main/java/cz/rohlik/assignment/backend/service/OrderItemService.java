@@ -14,6 +14,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 @FieldDefaults(makeFinal = true, level = lombok.AccessLevel.PRIVATE)
@@ -44,5 +46,14 @@ public class OrderItemService {
         productRepository.save(product);
 
         return savedOrderItem;
+    }
+
+    @Transactional
+    public void cancelOrderItems(List<OrderItem> items) {
+        items.forEach(orderItem -> {
+            Product product = orderItem.getProduct();
+            product.setStockQuantity(product.getStockQuantity().add(orderItem.getQuantity()));
+            productRepository.save(product);
+        });
     }
 }

@@ -1,5 +1,6 @@
 package cz.rohlik.assignment.backend.entity;
 
+import cz.rohlik.assignment.backend.model.OrderStatus;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -40,9 +41,4 @@ public class Order extends BaseEntity {
         return OrderStatus.CANCELLED.equals(status);
     }
 
-    public enum OrderStatus {
-        RESERVED,
-        PAID,
-        CANCELLED
-    }
 }
