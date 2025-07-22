@@ -2,3 +2,5 @@ app:
   order:
     expiration:
       time-in-seconds: 30
+      scheduler:
+        enabled: false

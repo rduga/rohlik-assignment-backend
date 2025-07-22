@@ -78,7 +78,8 @@ public class OrderService {
             }
 
             if (paymentRequestDto.getAmount().compareTo(order.getTotalPrice()) != 0) {
-                throw new OrderCannotBeCancelledException("Payment amount does not match order total price");
+                throw new OrderCannotBeCancelledException("Payment amount: %s does not match order total price: %s"
+                    .formatted(paymentRequestDto.getAmount(), order.getTotalPrice()));
             }
 
             order.setStatus(OrderStatus.PAID);
