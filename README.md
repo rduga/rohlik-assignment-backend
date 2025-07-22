@@ -20,6 +20,35 @@ This project is a backend solution for the Rohlik assignment, built using **Java
 
 ---
 
+## Running the Backend
+
+You can easily start the Spring Boot backend using the provided scripts:
+
+- **On macOS/Linux:**
+  ```sh
+  ./run-backend.sh
+  ```
+- **On Windows:**
+  Double-click or run:
+  ```bat
+  run-backend.bat
+  ```
+
+Alternatively, you can use the Maven Wrapper directly:
+
+- **macOS/Linux:**
+  ```sh
+  ./mvnw spring-boot:run
+  ```
+- **Windows:**
+  ```bat
+  mvnw.cmd spring-boot:run
+  ```
+
+The backend will start and be accessible at the configured endpoints.
+
+---
+
 ## Architecture
 
 The application follows a layered architecture to ensure separation of concerns and maintainability:
