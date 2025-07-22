@@ -26,29 +26,65 @@ import java.util.ArrayList;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
+/**
+ * Service class for managing orders and related business logic.
+ * <p>
+ * Handles order creation, payment, cancellation, and expiration.
+ */
 @Service
 @RequiredArgsConstructor
 @FieldDefaults(makeFinal = true, level = lombok.AccessLevel.PRIVATE)
 @Slf4j
 public class OrderService {
 
+    /**
+     * Repository for accessing order data.
+     */
     OrderRepository orderRepository;
+    /**
+     * Mapper for converting between Order entities and DTOs.
+     */
     OrderMapper orderMapper;
+    /**
+     * Service for managing order items.
+     */
     OrderItemService orderItemService;
 
+    /**
+     * Order expiration time in seconds (default: 1800 seconds = 30 minutes).
+     */
     @Value("${app.order.expiration.time-in-seconds:1800}") // Default to 30 minutes if not set
     long orderExpirationTimeSeconds;
 
+    /**
+     * Retrieves all orders with pagination support.
+     *
+     * @param pageable pagination and sorting information
+     * @return paginated list of order response DTOs
+     */
     public Page<OrderResponseDto> getAll(Pageable pageable) {
         return orderRepository.findAll(pageable).map(orderMapper::toDto);
     }
 
+    /**
+     * Retrieves an order by its ID.
+     *
+     * @param id the order ID
+     * @return the order response DTO
+     * @throws EntityNotFoundException if the order is not found
+     */
     public OrderResponseDto getById(Long id) {
         return orderRepository.findById(id)
                 .map(orderMapper::toDto)
                 .orElseThrow(() -> new EntityNotFoundException("Order not found with id: " + id));
     }
 
+    /**
+     * Creates a new order with the provided details.
+     *
+     * @param orderRequestDto the order request DTO
+     * @return the created order response DTO
+     */
     @Transactional
     public OrderResponseDto createOrder(OrderRequestDto orderRequestDto) {
         Order order = new Order();
@@ -70,6 +106,13 @@ public class OrderService {
         return orderMapper.toDto(order);
     }
 
+    /**
+     * Pays for an existing order by ID with the provided payment details.
+     *
+     * @param id the order ID
+     * @param paymentRequestDto the payment request DTO
+     * @return the updated order response DTO
+     */
     @Transactional
     public OrderResponseDto payForOrder(Long id, PaymentRequestDto paymentRequestDto) {
         return updateOrder(id, order -> {
@@ -86,6 +129,12 @@ public class OrderService {
         });
     }
 
+    /**
+     * Cancels an existing order by ID.
+     *
+     * @param id the order ID
+     * @return the updated order response DTO
+     */
     @Transactional
     public OrderResponseDto cancelOrder(Long id) {
         return updateOrder(id, order -> {
@@ -103,6 +152,13 @@ public class OrderService {
         });
     }
 
+    /**
+     * Updates an order using the provided consumer function.
+     *
+     * @param id the order ID
+     * @param orderConsumer the consumer function to apply to the order
+     * @return the updated order response DTO
+     */
     private OrderResponseDto updateOrder(Long id, Consumer<Order> orderConsumer) {
         Order order = orderRepository.getById(id);
 
@@ -112,6 +168,9 @@ public class OrderService {
         return orderMapper.toDto(savedOrder);
     }
 
+    /**
+     * Checks for and cancels expired orders that have not been paid.
+     */
     @Transactional
     public void checkForExpiredOrders() {
         Page<Order> expiredOrders = orderRepository.findAllByStatusAndCreatedAtBefore(
@@ -129,6 +188,11 @@ public class OrderService {
         orderRepository.saveAll(expiredOrders.getContent());
     }
 
+    /**
+     * Calculates the cutoff timestamp for order expiration.
+     *
+     * @return the cutoff Instant
+     */
     private Instant getCreatedAtBefore() {
         return Instant.now().minus(orderExpirationTimeSeconds, ChronoUnit.SECONDS);
     }

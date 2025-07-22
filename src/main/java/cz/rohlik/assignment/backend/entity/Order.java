@@ -15,6 +15,11 @@ import lombok.experimental.FieldDefaults;
 import java.math.BigDecimal;
 import java.util.List;
 
+/**
+ * Entity representing a customer order in the system.
+ * <p>
+ * Contains order items, status, total price, and version for optimistic locking.
+ */
 @Entity
 // 'order' is a reserved keyword in SQL, so we use "orders" as the table name
 @Table(name = "orders")
@@ -23,22 +28,44 @@ import java.util.List;
 @FieldDefaults(level = lombok.AccessLevel.PRIVATE)
 public class Order extends BaseEntity {
 
+    /**
+     * List of items included in this order.
+     */
     @OneToMany(mappedBy = "order")
     List<OrderItem> items;
 
+    /**
+     * Current status of the order (e.g., RESERVED, PAID, CANCELLED).
+     */
     @Enumerated(EnumType.STRING)
     OrderStatus status;
 
+    /**
+     * Total price of all items in the order.
+     */
     BigDecimal totalPrice;
 
+    /**
+     * Version field for optimistic locking.
+     */
     @Version
     Integer version;
 
+    /**
+     * Checks if the order is paid.
+     *
+     * @return true if the order status is PAID, false otherwise
+     */
     @Transient
     public boolean isPaid() {
         return OrderStatus.PAID.equals(status);
     }
 
+    /**
+     * Checks if the order is cancelled.
+     *
+     * @return true if the order status is CANCELLED, false otherwise
+     */
     @Transient
     public boolean isCancelled() {
         return OrderStatus.CANCELLED.equals(status);
